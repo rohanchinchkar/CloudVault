@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudVault</title>
+    <link rel="shortcut icon" href="./Icon/Cloudlogo2.png">
+    <style>
+       
+body, div, p {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0;
+  text-align: center;
+  padding: 20px;
+}
+
+#fileInputLabel {
+  display: block;
+  font-size: 18px;
+  margin-bottom: 10px;
+  color: white;
+}
+
+#fileDropArea {
+  border: 2px dashed #ccc;
+  padding: 20px;
+  text-align: center;
+  background-color: #fff;
+  margin-bottom: 20px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+#fileDropArea p {
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.progress {
+  height: 20px;
+  background-color: #fff;
+  margin-bottom: 20px;
+  border-radius: 5px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+.progress-bar {
+  width: 0;
+  height: 100%;
+  background-color: #007bff;
+  color: #fff;
+  text-align: center;
+  line-height: 20px;
+  border-radius: 5px;
+}
+
+button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  margin-right: 10px;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+#fileList {
+  margin-top: 20px;
+  background-color: #0f2039;
+  color: white;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0px 0px 10px rgba(13, 188, 10, 0.66);
+}
+
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #0f2039;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #4caf50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #fileList {
+            margin-top: 20px;
+        }
+
+        a {
+            text-decoration: none;
+            color: #007BFF;
+            font-weight: bold;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive styles */
+        @media only screen and (max-width: 600px) {
+            body {
+                margin: 10px;
+                padding: 10px;
+            }
+
+            button {
+                margin-bottom: 10px;
+                width: 100%;
+            }
+        }
+        
+    </style>
+</head>
+<body>
+    <label for="fileInput" id="fileInputLabel">Click to select a file</label>
+    <input type="file" id="fileInput" />
+
+    <div id="fileDropArea" ondragover="handleDragOver(event)" ondrop="handleFileDrop(event)">
+        <p>Drag and drop files here or click to select files.</p>
+        <div id="filePreview"></div>
+        <div class="progress">
+            <div class="progress-bar" id="progressBar" style="width: 0;">0%</div>
+        </div>
+    </div>
+
+    <button onclick="uploadFile()">Upload File</button>
+    <button onclick="deleteFile()">Delete File</button>
+    <button onclick="downloadFile()">Download File</button>
+    <button onclick="refreshFileList()">Refresh</button>
+    <button onclick="logout()">Logout</button>
+    <div id="fileList"></div>
+
+    <script>
+        function getUserInput() {
+            const accessToken = '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';
+            const username = '2003040';
+            const repoName = localStorage.getItem('signinEmail');
+
+            return { accessToken, username, repoName };
+        }
+
+        function updateFilePreview() {
+            const fileInput = document.getElementById('fileInput');
+            const filePreview = document.getElementById('filePreview');
+
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                filePreview.innerHTML = `<strong>Selected File:</strong> ${file.name}`;
+            } else {
+                filePreview.innerHTML = '';
+            }
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            fileDropArea.style.border = '2px dashed #007BFF';
+        }
+
+        function handleFileDrop(event) {
+            event.preventDefault();
+            fileDropArea.style.border = '2px dashed #ccc';
+            const files = event.dataTransfer.files;
+            document.getElementById('fileInput').files = files;
+            updateFilePreview();
+        }
+
+        function updateProgressBar(percentage) {
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.width = percentage + '%';
+            progressBar.textContent = percentage + '%';
+        }
+
+        async function uploadFile() {
+            const { accessToken, username, repoName } = getUserInput();
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Please select a file');
+                return;
+            }
+
+            const branch = 'main';
+
+            const apiUrl = `https://api.github.com/repos/${username}/${repoName}/contents/${file.name}`;
+
+            const fileReader = new FileReader();
+
+            fileReader.onload = async function (event) {
+                const content = event.target.result.split(',')[1];
+
+                const response = await fetch(apiUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${accessToken}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: 'Upload file',
+                        content: content,
+                        branch: branch,
+                    }),
+                });
+
+                if (response.ok) {
+                    alert('File uploaded successfully!');
+                    getFileList();
+                    updateProgressBar(0);
+                    document.getElementById('fileInput').value = '';
+                    updateFilePreview();
+                } else {
+                    const data = await response.json();
+                    alert(`Error: ${data.message}`);
+                }
+            };
+
+            fileReader.readAsDataURL(file);
+
+            const xhr = new XMLHttpRequest();
+            
+            // Add a progress event listener to track the upload progress
+            xhr.upload.addEventListener('progress', (event) => {
+                if (event.lengthComputable) {
+                    const percentage = (event.loaded / event.total) * 100;
+                    updateProgressBar(percentage);
+                }
+            });
+
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        // File uploaded successfully
+                    } else {
+                        alert('Error uploading the file.');
+                    }
+                }
+            };
+
+            xhr.open('PUT', apiUrl, true);
+            xhr.setRequestHeader('Authorization', `token ${accessToken}`);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.send(JSON.stringify({
+                message: 'Upload file',
+                content: content,
+                branch: branch,
+            }));
+        }
+
+        async function getFileList() {
+            const { username, repoName } = getUserInput();
+            const branch = 'main';
+
+            const apiUrl = `https://api.github.com/repos/${username}/${repoName}/contents?ref=${branch}`;
+
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '<h3>Uploaded Files:</h3>';
+
+            data.forEach(file => {
+                if (file.type === 'file') {
+                    const fileLink = document.createElement('a');
+                    fileLink.href = file.html_url;
+                    fileLink.textContent = file.name;
+                    fileLink.target = '_blank';
+                    fileList.appendChild(fileLink);
+                    fileList.appendChild(document.createElement('br'));
+                }
+            });
+        }
+
+        async function deleteFile() {
+            const { accessToken, username, repoName } = getUserInput();
+            const fileToDelete = prompt('Enter the name of the file to delete');
+
+            if (!fileToDelete) {
+                alert('Please enter the name of the file to delete');
+                return;
+            }
+
+            const branch = 'main';
+            const getFileUrl = `https://api.github.com/repos/${username}/${repoName}/contents/${fileToDelete}?ref=${branch}`;
+            const getFileResponse = await fetch(getFileUrl);
+            const fileData = await getFileResponse.json();
+
+            if (!fileData.sha) {
+                alert(`Error: Could not get the SHA for the file '${fileToDelete}'`);
+                return;
+            }
+
+            const apiUrl = `https://api.github.com/repos/${username}/${repoName}/contents/${fileToDelete}`;
+
+            const response = await fetch(apiUrl, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `token ${accessToken}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: 'Delete file',
+                    branch: branch,
+                    sha: fileData.sha,
+                }),
+            });
+
+            if (response.ok) {
+                alert('File deleted successfully!');
+                getFileList();
+            } else {
+                const data = await response.json();
+                alert(`Error: ${data.message}`);
+            }
+            getFileList();
+        }
+
+        function downloadFile() {
+            const { username, repoName } = getUserInput();
+            const fileToDownload = prompt('Enter the name of the file to download');
+
+            if (!fileToDownload) {
+                alert('Please enter the name of the file to download');
+                return;
+            }
+
+            const downloadUrl = `https://raw.githubusercontent.com/${username}/${repoName}/main/${fileToDownload}`;
+            window.open(downloadUrl, '_blank');
+        }
+
+        async function refreshFileList() {
+            getFileList();
+        }
+
+        getFileList();
+
+        function logout() {
+            window.location.href = 'signin.html';
+        }
+
+        const fileInputLabel = document.getElementById('fileInputLabel');
+        fileInputLabel.addEventListener('click', () => {
+            const fileInput = document.getElementById('fileInput');
+            fileInput.click();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', updateFilePreview);
+    </script>
+</body>
+</html>
+
+
+

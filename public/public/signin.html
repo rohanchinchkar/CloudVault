@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SignIn</title>
+    <link rel="shortcut icon" href="./Icon/Cloudlogo2.png">
+
+    <style>
+      body {
+            background: url("./home-carousel/space.jpg") no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            animation: spaceAnimation 30s linear infinite;
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        @keyframes spaceAnimation {
+            0% {
+                background-position: 0 0;
+            }
+            100% {
+                background-position: 100% 0;
+            }
+        }
+
+        h2 {
+            text-align: center;
+            color: #fff;
+        }
+
+        #signinForm,
+        form {
+            width: 300px;
+            margin: 0 auto;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            animation: bounce 2s infinite;
+            text-align: left;
+            margin: 50px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            /* background: #0f2039;  */
+            max-width: 400px;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        input[type="submit"],
+        input[type="submit"]:hover {
+            width: 100%;
+            padding: 10px;
+            background: #4caf50;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background: #45a049;
+        }
+
+        @keyframes bounce {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        hr {
+            margin-top: 50px;
+            margin-bottom: 40px;
+            border: 0;
+            border-top: 1px solid #ccc;
+        }
+
+        @media only screen and (max-width: 600px) {
+            #signinForm,
+            form {
+                max-width: none;
+            }
+        }
+
+        .sign {
+            position: relative;
+            top: 10%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            /* box-shadow: 0 0 10px rgba(255, 255, 255, 0.3); */
+        }
+
+        video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.5;
+            z-index: -1;
+            animation: videoAnimation 20s linear infinite;
+        }
+
+        @keyframes videoAnimation {
+            0% {
+                transform: scale(1.05);
+            }
+            50% {
+                transform: scale(1);
+            }
+            100% {
+                transform: scale(1.05);
+            }
+        }
+    </style>
+  </head>
+
+  <body>
+    <h2>Sign In</h2>
+    <form id="signinForm">
+      <label for="signinEmail">Email:</label>
+      <input type="text" id="signinEmail" required />
+
+      <label for="signinPassword">Password:</label>
+      <input type="password" id="signinPassword" required />
+
+      <input type="submit" id="signIn" name="signIn_submit" value="Sign In" />
+    </form>
+    <video autoplay loop>
+      <source src="./video/video1.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+  </video>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+      import {
+        getDatabase,
+        set,
+        ref,
+        update,
+      } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
+      import {
+        getAuth,
+        createUserWithEmailAndPassword,
+        signInWithEmailAndPassword,
+      } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyCaTx71e96ZemnnaYLY4dMTR_GMRLXGJkE",
+        authDomain: "cloudvault-11.firebaseapp.com",
+        databaseURL: "https://cloudvault-11-default-rtdb.firebaseio.com",
+        projectId: "cloudvault-11",
+        storageBucket: "cloudvault-11.appspot.com",
+        messagingSenderId: "946506838229",
+        appId: "1:946506838229:web:6e39ab41e1a7c5a88b725c",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const database = getDatabase(app);
+      const auth = getAuth();
+
+      function getUserInput() {
+        const accessToken = "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";
+        const username = "2003040";
+        const repoName_email = document.getElementById("signinEmail").value;
+        const repoName = repoName_email.replace(/@/g, "-");
+
+        return { accessToken, username, repoName };
+      }
+
+      document.getElementById("signIn").addEventListener("click", (e) => {
+        e.preventDefault();
+        var signinEmail = document.getElementById("signinEmail").value;
+        var signinPassword = document.getElementById("signinPassword").value;
+
+        signInWithEmailAndPassword(auth, signinEmail, signinPassword)
+          .then((userCredential) => {
+            const user = userCredential.user;
+            const dt = new Date();
+            update(ref(database, "users/" + user.uid), {
+              last_login: dt,
+            });
+            alert("User Signed in!");
+            var signinusername = document.getElementById("signinEmail").value;
+            var signinEmail = signinusername.replace(/@/g, "-");
+            localStorage.setItem("signinEmail", signinEmail);
+            window.location.href = "home.html";
+          })
+          .catch((error) => {
+            const errorMessage = error.message;
+            alert(errorMessage);
+          });
+      });
+    </script>
+  </body>
+</html>

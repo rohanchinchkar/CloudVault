@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CloudVault</title>
+  <link rel="shortcut icon" href="./Icon/Cloudlogo2.png">
+
+  <style>
+    body {
+      background: url("./home-carousel/space.jpg") no-repeat center center fixed;
+      background-size: cover;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      overflow: hidden;
+      animation: spaceAnimation 30s linear infinite;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+
+    @keyframes spaceAnimation {
+      0% {
+        background-position: 0 0;
+      }
+
+      100% {
+        background-position: 100% 0;
+      }
+    }
+
+    h2 {
+      text-align: center;
+      color: #fff;
+    }
+
+    #signinForm,
+    form {
+      width: 300px;
+      margin: 0 auto;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+      animation: bounce 2s infinite;
+      text-align: left;
+      margin: 50px auto;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      /* background: #0f2039; */
+      /* Updated background color */
+      max-width: 400px;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      padding: 8px;
+      margin-top: 5px;
+      margin-bottom: 12px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+
+    input[type="submit"],
+    input[type="submit"]:hover {
+      width: 100%;
+      padding: 10px;
+      background: #4caf50;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    input[type="submit"]:hover {
+      background: #45a049;
+    }
+
+    @keyframes bounce {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+
+    hr {
+      margin-top: 50px;
+      margin-bottom: 40px;
+      border: 0;
+      border-top: 1px solid #ccc;
+    }
+
+    @media only screen and (max-width: 600px) {
+
+      #signinForm,
+      form {
+        max-width: none;
+      }
+    }
+
+    .sign {
+      position: relative;
+      top: 10%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      padding: 20px;
+      border-radius: 10px;
+      /* box-shadow: 0 0 10px rgba(255, 255, 255, 0.3); */
+    }
+
+    video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.5;
+      z-index: -1;
+      animation: videoAnimation 60s linear infinite;
+    }
+
+    @keyframes videoAnimation {
+      0% {
+        transform: scale(1.05);
+      }
+
+      50% {
+        transform: scale(1);
+      }
+
+      100% {
+        transform: scale(1.05);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <h2>Sign Up</h2>
+  <form id="signupForm">
+    <label for="email">Email:</label>
+    <input type="text" id="email" />
+
+    <label for="password">Password:</label>
+    <input type="password" id="password" />
+
+    <label for="confirmPassword">Confirm Password:</label>
+    <input type="password" id="confirmPassword" />
+
+    <input type="submit" id="signUp" name="signup_submit" value="Sign Up" />
+    <p style="color: white;">
+      If you have already signed up, click
+      <a href="signin.html" onclick="redirectToSignin()">here</a> to sign in.
+    </p>
+  </form>
+  <video autoplay loop>
+    <source src="./video/video1.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+    import {
+      getDatabase,
+      set,
+      ref,
+      update,
+    } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
+    import {
+      getAuth,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+    } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCaTx71e96ZemnnaYLY4dMTR_GMRLXGJkE",
+      authDomain: "cloudvault-11.firebaseapp.com",
+      databaseURL: "https://cloudvault-11-default-rtdb.firebaseio.com",
+      projectId: "cloudvault-11",
+      storageBucket: "cloudvault-11.appspot.com",
+      messagingSenderId: "946506838229",
+      appId: "1:946506838229:web:6e39ab41e1a7c5a88b725c",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+    const auth = getAuth();
+
+    function getUserInput() {
+      const accessToken = "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";
+      const username = "2003040";
+      const repoName_email = document.getElementById("email").value;
+      const repoName = repoName_email.replace(/@/g, "-");
+
+      return { accessToken, username, repoName };
+    }
+
+    async function createNewRepository() {
+      const { accessToken, username } = getUserInput();
+
+      const repoName = prompt("Enter again the Email to create new folder");
+
+      if (!repoName) {
+        alert("Please enter a Email for the new folder.");
+        return;
+      }
+
+      const apiUrl = "https://api.github.com/user/repos";
+
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: {
+          Authorization: `token ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: repoName,
+          private: false, // Set to true for a private repository
+        }),
+      });
+
+
+
+
+      const numberOfRepos = 4; // Change this value to create more or fewer repositories
+
+      for (let i = 1; i <= numberOfRepos; i++) {
+        const nextrepoName = `${repoName}_${i}`;
+
+        const apiUrl = "https://api.github.com/user/repos";
+
+        const response = await fetch(apiUrl, {
+          method: "POST",
+          headers: {
+            Authorization: `token ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: nextrepoName,
+            private: false, // Set to true for a private repository
+          }),
+        });
+      }
+
+
+
+
+
+      if (response.ok) {
+        alert("New folder created successfully!");
+        getFileList(); // Refresh the file list to include the new repository
+      } else {
+        const data = await response.json();
+        alert(`Error: ${data.message}`);
+      }
+    }
+
+    document.getElementById("signUp").addEventListener("click", (e) => {
+      e.preventDefault();
+      var email = document.getElementById("email").value;
+      var password = document.getElementById("password").value;
+      var confirmPassword = document.getElementById("confirmPassword").value;
+
+      if (password !== confirmPassword) {
+        alert("Password do not match.");
+        return;
+      }
+
+      createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          set(ref(database, "users/" + user.uid), {
+            email: email,
+          });
+          alert("User created!");
+          createNewRepository();
+        })
+        .catch((error) => {
+          const errorMessage = error.message;
+          alert(errorMessage);
+        });
+    });
+
+    function redirectToSignin() {
+      window.location.href = "signin.html";
+    }
+  </script>
+</body>
+
+</html>
